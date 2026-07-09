@@ -78,6 +78,7 @@ uvicorn main:app --host 192.168.136.1 --port 8000 --reload
 * **`POST /api/v1/traffic`**: Accepts packet metadata, scales features, runs inference, and broadcasts results.
 * **`WebSocket /ws/live`**: Client endpoint for receiving live anomaly updates and system metrics.
 
+<<<<<<< HEAD
 ---
 
 ## 🕵️♂️ Network Sniffer Setup (Kali Linux)
@@ -124,6 +125,19 @@ sudo python3 advanced_test_suite.py
 Generates anomalous payloads from an array of randomized, spoofed IP addresses to test the frontend UI's multi-actor rendering.
 ```bash
 sudo python3 simulate_multi_ip.py
+=======
+Example request body:
+```json
+{
+  "src_ip": "192.168.1.",
+  "dst_ip": "192.168.1.0",
+  "proto": 6,
+  "length": 128,
+  "is_tcp": 1,
+  "is_udp": 0,
+  "is_icmp": 0
+}
+>>>>>>> 4966130b1440d999535c0b9305e5d671fbc5a31d
 ```
 
 
