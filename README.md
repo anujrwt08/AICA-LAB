@@ -73,8 +73,8 @@ Accepts packet metadata, scales the features, runs model inference, and broadcas
 Example request body:
 ```json
 {
-  "src_ip": "192.168.1.10",
-  "dst_ip": "192.168.1.20",
+  "src_ip": "192.168.1.",
+  "dst_ip": "192.168.1.0",
   "proto": 6,
   "length": 128,
   "is_tcp": 1,
