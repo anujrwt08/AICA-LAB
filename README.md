@@ -19,7 +19,7 @@ The project operates across a distributed 3-node architecture:
 
 ---
 
-## 🚀 Frontend Setup (React)
+## Frontend Setup (React)
 
 The frontend is built using React, Vite, Recharts, and ForceGraph2D.
 
@@ -44,7 +44,7 @@ npm run dev
 
 ---
 
-## 🧠 Backend / Machine Learning Setup (FastAPI)
+##  Backend / Machine Learning Setup (FastAPI)
 
 The backend uses FastAPI for live traffic classification and anomaly detection.
 
@@ -80,7 +80,7 @@ uvicorn main:app --host 192.168.136.1 --port 8000 --reload
 
 ---
 
-## 🕵️♂️ Network Sniffer Setup (Kali Linux)
+##  Network Sniffer Setup (Kali Linux)
 
 The sniffer runs on a separate machine or VM to monitor active network interfaces and push telemetry to the backend.
 
@@ -107,7 +107,7 @@ sudo python3 aids_sniffer.py
 
 ---
 
-## ⚔️ Threat Simulation & Testing
+##  Threat Simulation & Testing
 
 To validate the ML model's accuracy without executing actual malware, the repository includes controlled anomaly generation scripts. These scripts craft out-of-distribution packets designed to trigger the Anomaly-based IDS.
 
