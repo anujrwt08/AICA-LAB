@@ -136,7 +136,6 @@ Example request body:
   "is_udp": 0,
   "is_icmp": 0
 }
->>>>>>> 4966130b1440d999535c0b9305e5d671fbc5a31d
 ```
 
 
