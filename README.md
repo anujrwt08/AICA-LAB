@@ -128,8 +128,8 @@ sudo python3 simulate_multi_ip.py
 Example request body:
 ```json
 {
-  "src_ip": "192.168.1.",
-  "dst_ip": "192.168.1.0",
+  "src_ip": "192.0",
+  "dst_ip": "192.0",
   "proto": 6,
   "length": 128,
   "is_tcp": 1,
