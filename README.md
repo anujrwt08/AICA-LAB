@@ -78,7 +78,6 @@ uvicorn main:app --host 192.168.136.1 --port 8000 --reload
 * **`POST /api/v1/traffic`**: Accepts packet metadata, scales features, runs inference, and broadcasts results.
 * **`WebSocket /ws/live`**: Client endpoint for receiving live anomaly updates and system metrics.
 
-<<<<<<< HEAD
 ---
 
 ## 🕵️♂️ Network Sniffer Setup (Kali Linux)
