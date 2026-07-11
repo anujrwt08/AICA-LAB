@@ -23,10 +23,14 @@ export default function NetworkTopology({ dataHistory }) {
     }
   }, [dataHistory]); // Re-apply if data changes significantly, though once is usually enough
 
+  // Keep persistent maps so ForceGraph doesn't reset node X/Y coordinates on every data update!
+  const nodesRef = useRef(new Map());
+  const linksRef = useRef(new Map());
+
   // Process streaming data into graph format
   const graphData = useMemo(() => {
-    const nodesMap = new Map();
-    const linksMap = new Map();
+    const nodesMap = nodesRef.current;
+    const linksMap = linksRef.current;
 
     dataHistory.forEach(row => {
       const src = row.metrics?.src_ip;
@@ -35,12 +39,15 @@ export default function NetworkTopology({ dataHistory }) {
 
       if (!src || !dst) return;
 
-      // Assign types so we can color them differently
-      if (!nodesMap.has(src)) nodesMap.set(src, { id: src, isThreat: isAnomaly, type: 'source' });
-      if (!nodesMap.has(dst)) nodesMap.set(dst, { id: dst, isThreat: false, type: 'destination' });
-
-      if (isAnomaly) {
+      // Only create a node if it doesn't already exist to preserve its X/Y coordinates
+      if (!nodesMap.has(src)) {
+        nodesMap.set(src, { id: src, isThreat: isAnomaly, type: 'source' });
+      } else if (isAnomaly) {
         nodesMap.get(src).isThreat = true; // Mark source as malicious
+      }
+
+      if (!nodesMap.has(dst)) {
+        nodesMap.set(dst, { id: dst, isThreat: false, type: 'destination' });
       }
 
       // Link ID

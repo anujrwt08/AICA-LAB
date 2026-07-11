@@ -1,7 +1,6 @@
 import React from 'react';
 import MetricsRibbon from '../components/MetricsRibbon';
 import AnomalyChart from '../components/AnomalyChart';
-import TelemetryTable from '../components/TelemetryTable';
 
 export default function Dashboard({ metrics, dataHistory }) {
   return (
@@ -16,7 +15,6 @@ export default function Dashboard({ metrics, dataHistory }) {
       <MetricsRibbon metrics={metrics} />
       <div className="dashboard-main-grid">
         <AnomalyChart dataHistory={dataHistory} />
-        <TelemetryTable dataHistory={dataHistory} />
       </div>
     </>
   );

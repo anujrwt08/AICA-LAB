@@ -426,7 +426,7 @@ body {
 /* Base grid classes for React components */
 .dashboard-main-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
