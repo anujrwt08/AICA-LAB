@@ -78,67 +78,36 @@ uvicorn main:app --host 192.168.136.1 --port 8000 --reload
 * **`POST /api/v1/traffic`**: Accepts packet metadata, scales features, runs inference, and broadcasts results.
 * **`WebSocket /ws/live`**: Client endpoint for receiving live anomaly updates and system metrics.
 
-<<<<<<< HEAD
 ---
 
-## 🕵️♂️ Network Sniffer Setup (Kali Linux)
+## 🛡️ Explainable AI (XAI) Threat Defense Console (`kali.py`)
 
-The sniffer runs on a separate machine or VM to monitor active network interfaces and push telemetry to the backend.
+The console GUI (`kali.py`) provides live packet sniffing, automatic adapter detection (Wi-Fi, Ethernet, Loopback, eth0), safe threat simulations, and real-time **Explainable AI (XAI)** threat analysis.
 
-### Prerequisites
+### Features
+- **Adapter Detection**: Automatically detects active network interfaces on Windows and Linux without crashing.
+- **Explainable AI (XAI) Threat Inspector**: Identifies what type of attack occurred (UDP Flood, ICMP Ping of Death, DNS Burst, HTTPS Exfiltration, DDoS, TCP SYN Flood) and explains **why and how** it was identified as an attack.
+- **Feature Baseline Comparison**: Compares observed packet size, protocol, and transport flags against normal baseline thresholds (RFC 791 / IEEE 802.3 MTU).
+- **Presentation Dossier**: Generates a complete Explainable AI threat briefing suitable for academic presentations and defense evaluations.
 
-* Kali Linux (or any Debian-based system)
-* Root/Sudo privileges (required for raw packet capture)
-
-### Installation & Execution
-
-1. Open a terminal in Kali Linux and navigate to the `aids-sniffer` directory.
-2. Install Scapy:
+### Execution
+Run the console on your host or VM:
 ```bash
-pip3 install scapy
+python kali.py
 ```
-
-
-3. Launch the live sniffer (Ensure you update the backend IP in the script if it changes):
-```bash
-sudo python3 aids_sniffer.py
-```
-
-
 
 ---
 
-## ⚔️ Threat Simulation & Testing
+## ⚔️ Safe Threat Simulation Lab
 
-To validate the ML model's accuracy without executing actual malware, the repository includes controlled anomaly generation scripts. These scripts craft out-of-distribution packets designed to trigger the Anomaly-based IDS.
-
-Run these scripts from your **Kali Linux VM** while the sniffer and backend are active:
-
-1. **Multi-Vector Threat Suite**
-Sends 5 distinct packet types (including volumetric UDP bursts and malformed TCP structures) to test classification boundaries.
-```bash
-sudo python3 advanced_test_suite.py
-```
-
-
-2. **Spoofed DDoS Simulation**
-Generates anomalous payloads from an array of randomized, spoofed IP addresses to test the frontend UI's multi-actor rendering.
-```bash
-sudo python3 simulate_multi_ip.py
-=======
-Example request body:
-```json
-{
-  "src_ip": "192.168.1.",
-  "dst_ip": "192.168.1.0",
-  "proto": 6,
-  "length": 128,
-  "is_tcp": 1,
-  "is_udp": 0,
-  "is_icmp": 0
-}
->>>>>>> 4966130b1440d999535c0b9305e5d671fbc5a31d
-```
+Simulate realistic attacks safely without transmitting malicious payloads:
+1. **UDP Volumetric Flood**: Datagrams exceeding standard 1500B MTU limit.
+2. **ICMP Ping of Death / Echo Flood**: Oversized ICMP control packets.
+3. **DNS Query Burst**: Rapid high-frequency UDP resolution queries.
+4. **HTTPS Payload Spike**: Out-of-bounds TCP segment payload indicating exfiltration.
+5. **Distributed DDoS Multi-Source**: Coordinated volumetric stream from randomized IP prefixes.
+6. **TCP SYN Flood / Port Reconnaissance**: Minimal zero-payload TCP probes.
+7. **Normal Web Traffic**: Legitimate baseline traffic.
 
 
 
