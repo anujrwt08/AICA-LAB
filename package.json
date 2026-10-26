@@ -1,0 +1,9 @@
+{
+  "name": "aids-threatshield-all",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "python run_all.py",
+    "dev": "python run_all.py"
+  }
+}

@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const MAX_HISTORY = 50;
 const THRESHOLD = 500.0;
-const WS_URL = 'ws://192.168.136.1:8000/ws/live';
-const RENDER_INTERVAL_MS = 1000; // Throttle React state updates to 1 time a second for maximum performance
+const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' && window.location.hostname ? `ws://${window.location.hostname}:8000/ws/live` : 'ws://localhost:8000/ws/live');
+const RENDER_INTERVAL_MS = 250; // Throttle React state updates to 4 times a second for smooth live rendering
 
 export function useThreatWebSocket() {
   const [dataHistory, setDataHistory] = useState([]);

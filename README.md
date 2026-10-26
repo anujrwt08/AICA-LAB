@@ -19,7 +19,7 @@ The project operates across a distributed 3-node architecture:
 
 ---
 
-## 🚀 Frontend Setup (React)
+## Frontend Setup (React)
 
 The frontend is built using React, Vite, Recharts, and ForceGraph2D.
 
@@ -44,7 +44,7 @@ npm run dev
 
 ---
 
-## 🧠 Backend / Machine Learning Setup (FastAPI)
+##  Backend / Machine Learning Setup (FastAPI)
 
 The backend uses FastAPI for live traffic classification and anomaly detection.
 
@@ -80,7 +80,11 @@ uvicorn main:app --host 192.168.136.1 --port 8000 --reload
 
 ---
 
+<<<<<<< HEAD
 ## 🛡️ Explainable AI (XAI) Threat Defense Console (`kali.py`)
+=======
+##  Network Sniffer Setup (Kali Linux)
+>>>>>>> ac547b5328b757b63f5670e2f2743bc9f5ba7a61
 
 The console GUI (`kali.py`) provides live packet sniffing, automatic adapter detection (Wi-Fi, Ethernet, Loopback, eth0), safe threat simulations, and real-time **Explainable AI (XAI)** threat analysis.
 
@@ -98,6 +102,7 @@ python kali.py
 
 ---
 
+<<<<<<< HEAD
 ## ⚔️ Safe Threat Simulation Lab
 
 Simulate realistic attacks safely without transmitting malicious payloads:
@@ -108,6 +113,38 @@ Simulate realistic attacks safely without transmitting malicious payloads:
 5. **Distributed DDoS Multi-Source**: Coordinated volumetric stream from randomized IP prefixes.
 6. **TCP SYN Flood / Port Reconnaissance**: Minimal zero-payload TCP probes.
 7. **Normal Web Traffic**: Legitimate baseline traffic.
+=======
+##  Threat Simulation & Testing
+
+To validate the ML model's accuracy without executing actual malware, the repository includes controlled anomaly generation scripts. These scripts craft out-of-distribution packets designed to trigger the Anomaly-based IDS.
+
+Run these scripts from your **Kali Linux VM** while the sniffer and backend are active:
+
+1. **Multi-Vector Threat Suite**
+Sends 5 distinct packet types (including volumetric UDP bursts and malformed TCP structures) to test classification boundaries.
+```bash
+sudo python3 advanced_test_suite.py
+```
+
+
+2. **Spoofed DDoS Simulation**
+Generates anomalous payloads from an array of randomized, spoofed IP addresses to test the frontend UI's multi-actor rendering.
+```bash
+sudo python3 simulate_multi_ip.py
+=======
+Example request body:
+```json
+{
+  "src_ip": "192.0",
+  "dst_ip": "192.0",
+  "proto": 6,
+  "length": 128,
+  "is_tcp": 1,
+  "is_udp": 0,
+  "is_icmp": 0
+}
+```
+>>>>>>> ac547b5328b757b63f5670e2f2743bc9f5ba7a61
 
 
 
