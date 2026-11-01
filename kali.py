@@ -531,6 +531,14 @@ class ThreatShieldGUI:
         )
         clear_btn.pack(side="right")
 
+        export_btn = ttk.Button(
+            logs_header,
+            text="💾 Save Logs",
+            style="Simulation.TButton",
+            command=self.export_logs
+        )
+        export_btn.pack(side="right", padx=(0, 6))
+
         self.console = scrolledtext.ScrolledText(
             logs_panel,
             bg="#020617",
@@ -553,6 +561,20 @@ class ThreatShieldGUI:
         self.console.config(state="normal")
         self.console.delete("1.0", tk.END)
         self.console.config(state="disabled")
+
+    def export_logs(self):
+        try:
+            content = self.console.get("1.0", tk.END).strip()
+            if not content:
+                messagebox.showinfo("Export Logs", "No logs recorded to export.")
+                return
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = f"threatshield_kali_logs_{timestamp}.txt"
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(content)
+            messagebox.showinfo("Export Successful", f"Logs saved successfully to:\n{filename}")
+        except Exception as e:
+            messagebox.showerror("Export Failed", f"Could not save logs:\n{e}")
 
     def safe_log(self, message, tag=None):
         self.root.after(0, self.log, message, tag)

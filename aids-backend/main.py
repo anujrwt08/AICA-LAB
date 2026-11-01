@@ -7,6 +7,9 @@ import numpy as np
 import json
 import asyncio
 import time
+import io
+import csv
+from fastapi.responses import Response
 
 app = FastAPI()
 
@@ -40,6 +43,78 @@ class PacketData(BaseModel):
     simulation_type: str | None = None
 
 active_connections = []
+MAX_ANOMALY_HISTORY = 2000
+anomaly_history: list[dict] = []
+
+@app.get("/api/v1/anomalies")
+async def get_anomalies(limit: int = 1000):
+    """Retrieve historical detected anomalies for investigation and forensic analysis (attacks only)."""
+    attacks_only = [
+        item for item in anomaly_history
+        if item.get("anomaly") is True
+        and item.get("attack_type") not in ["Normal Baseline Traffic", "Normal Baseline"]
+        and item.get("severity") != "SAFE"
+    ]
+    return {
+        "status": "success",
+        "total": len(attacks_only),
+        "data": attacks_only[-limit:]
+    }
+
+@app.delete("/api/v1/anomalies")
+async def clear_anomalies():
+    """Clear recorded anomaly history."""
+    count = len(anomaly_history)
+    anomaly_history.clear()
+    return {
+        "status": "success",
+        "cleared_count": count
+    }
+
+@app.get("/api/v1/anomalies/export")
+async def export_anomalies(format: str = "csv"):
+    """Export anomaly history as downloadable CSV or JSON file."""
+    if format.lower() == "json":
+        return Response(
+            content=json.dumps(anomaly_history, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=threatshield_anomalies_{int(time.time())}.json"}
+        )
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Timestamp (ms)", "Source IP", "Destination IP", "Protocol",
+        "Length (Bytes)", "Loss Score (%)", "Attack Type", "Severity",
+        "Triggered Rule", "Dominant Feature", "XAI Reasoning", "Mitigation"
+    ])
+    for item in anomaly_history:
+        metrics = item.get("metrics", {})
+        expl = item.get("explanation", {})
+        proto_map = {6: "TCP", 17: "UDP", 1: "ICMP"}
+        proto_val = metrics.get("proto", "")
+        proto_name = proto_map.get(proto_val, f"PROTO-{proto_val}")
+        writer.writerow([
+            item.get("id", ""),
+            metrics.get("timestamp", ""),
+            metrics.get("src_ip", ""),
+            metrics.get("dst_ip", ""),
+            proto_name,
+            metrics.get("length", ""),
+            round(item.get("score", 0), 2),
+            item.get("attack_type", ""),
+            item.get("severity", ""),
+            expl.get("rule_triggered", ""),
+            expl.get("dominant_feature", ""),
+            expl.get("reason", ""),
+            expl.get("mitigation", "")
+        ])
+    
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=threatshield_anomalies_{int(time.time())}.csv"}
+    )
 
 @app.websocket("/ws/live")
 async def websocket_endpoint(websocket: WebSocket):
@@ -243,7 +318,11 @@ async def receive_traffic(data: PacketData):
     attack_type = explanation_data["attack_type"]
     
     # 5. Construct payload for the frontend UI (including current Unix timestamp in milliseconds)
+    now_ms = int(time.time() * 1000)
+    packet_id = f"anom-{now_ms}-{len(anomaly_history) + 1}" if is_anomaly else f"flow-{now_ms}-{data.length}"
+    
     payload = {
+        "id": packet_id,
         "metrics": {
             "src_ip": data.src_ip,
             "dst_ip": data.dst_ip,
@@ -252,7 +331,7 @@ async def receive_traffic(data: PacketData):
             "is_tcp": data.is_tcp,
             "is_udp": data.is_udp,
             "is_icmp": data.is_icmp,
-            "timestamp": int(time.time() * 1000)
+            "timestamp": now_ms
         },
         "anomaly": is_anomaly,
         "attack_type": attack_type,
@@ -260,6 +339,13 @@ async def receive_traffic(data: PacketData):
         "score": probability * 100,
         "explanation": explanation_data
     }
+    
+    # Store persistent anomaly history so rapid attacks are never lost by subsequent normal traffic
+    is_safe = attack_type in ["Normal Baseline Traffic", "Normal Baseline"] or explanation_data.get("severity") == "SAFE"
+    if is_anomaly and not is_safe:
+        anomaly_history.append(payload)
+        if len(anomaly_history) > MAX_ANOMALY_HISTORY:
+            anomaly_history.pop(0)
     
     # 6. Broadcast safely to connected UI dashboards
     disconnected = []

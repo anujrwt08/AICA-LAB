@@ -1,12 +1,41 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const MAX_HISTORY = 50;
+const MAX_ANOMALY_HISTORY = 1000;
 const THRESHOLD = 500.0;
 const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' && window.location.hostname ? `ws://${window.location.hostname}:8000/ws/live` : 'ws://localhost:8000/ws/live');
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname ? `http://${window.location.hostname}:8000` : 'http://localhost:8000');
 const RENDER_INTERVAL_MS = 250; // Throttle React state updates to 4 times a second for smooth live rendering
+const STORAGE_KEY = 'threatshield_anomaly_history';
+
+// Strict filter to guarantee ONLY real attacks are stored in Anomaly History (no safe baseline traffic)
+const isGenuineAttack = (item) => {
+  if (!item || item.anomaly !== true) return false;
+  const attackType = (item.attack_type || '').toLowerCase();
+  if (attackType.includes('normal') || attackType.includes('safe baseline')) return false;
+  const severity = (item.severity || item.explanation?.severity || '').toUpperCase();
+  if (severity === 'SAFE') return false;
+  return true;
+};
+
+const loadLocalAnomalies = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(isGenuineAttack);
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load anomalies from localStorage", e);
+  }
+  return [];
+};
 
 export function useThreatWebSocket() {
   const [dataHistory, setDataHistory] = useState([]);
+  const [anomalyHistory, setAnomalyHistory] = useState(loadLocalAnomalies);
   const [connectionStatus, setConnectionStatus] = useState('Connecting');
   
   const [metrics, setMetrics] = useState({
@@ -22,12 +51,60 @@ export function useThreatWebSocket() {
   
   // Keep true state in refs to avoid constant React re-renders for high-frequency streaming
   const historyRef = useRef([]);
+  const anomalyHistoryRef = useRef(loadLocalAnomalies());
   const metricsRef = useRef({
     totalTraffic: 0,
     detectedAnomalies: 0,
     sumScore: 0,
     latestAnomalyType: null
   });
+
+  // Fetch persistent historical anomalies from the backend on initial load
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBackendAnomalies = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/anomalies?limit=1000`);
+        if (res.ok && isMounted) {
+          const json = await res.json();
+          const backendItems = json.data || (Array.isArray(json) ? json : []);
+          if (backendItems.length > 0) {
+            const validAttacks = backendItems
+              .filter(isGenuineAttack)
+              .map(item => {
+                const itemCopy = { ...item };
+                if (!itemCopy.metrics) itemCopy.metrics = {};
+                if (itemCopy.metrics.timestamp && itemCopy.metrics.timestamp > 2000000000) {
+                  itemCopy.metrics.timestamp = itemCopy.metrics.timestamp / 1000;
+                }
+                if (!itemCopy.id) {
+                  itemCopy.id = `anom-${itemCopy.metrics.timestamp || Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+                }
+                return itemCopy;
+              });
+
+            // Merge with local ref, avoiding duplicates by id
+            const existingIds = new Set(anomalyHistoryRef.current.map(a => a.id));
+            const toAdd = validAttacks.filter(a => !existingIds.has(a.id));
+            if (toAdd.length > 0) {
+              const merged = [...anomalyHistoryRef.current, ...toAdd]
+                .filter(isGenuineAttack)
+                .slice(-MAX_ANOMALY_HISTORY);
+              anomalyHistoryRef.current = merged;
+              setAnomalyHistory(merged);
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch backend anomaly history", err);
+      }
+    };
+    fetchBackendAnomalies();
+    return () => { isMounted = false; };
+  }, []);
 
   const connect = useCallback(() => {
     try {
@@ -44,32 +121,44 @@ export function useThreatWebSocket() {
         try {
           const payload = JSON.parse(event.data);
           
-          // Robust fallback: if the backend payload is missing the metrics block or the timestamp,
-          // we dynamically inject the current real time.
           if (!payload.metrics) {
             payload.metrics = {};
           }
           if (!payload.metrics.timestamp) {
             payload.metrics.timestamp = Date.now() / 1000;
           } else if (payload.metrics.timestamp > 2000000000) {
-            // If the backend sends the time in milliseconds (value larger than the year 2033 in seconds),
-            // convert it down to seconds because the rest of the app assumes the timestamp is in seconds.
             payload.metrics.timestamp = payload.metrics.timestamp / 1000;
           }
           
           const newEntry = {
             ...payload,
-            id: `${payload.metrics.timestamp}-${Math.random().toString(36).substr(2, 9)}`
+            id: payload.id || `${payload.metrics.timestamp}-${Math.random().toString(36).substr(2, 9)}`
           };
 
+          // Update transient sliding window (live stream)
           historyRef.current = [...historyRef.current, newEntry].slice(-MAX_HISTORY);
           
-          const isAnomaly = payload.anomaly === true;
           metricsRef.current.totalTraffic += 1;
-          if (isAnomaly) {
+          
+          // Strict check: ONLY genuine attacks enter anomaly history
+          const isAttack = isGenuineAttack(newEntry);
+          if (isAttack) {
             metricsRef.current.detectedAnomalies += 1;
-            metricsRef.current.latestAnomalyType = payload.attack_type || 'Threat Detected';
+            metricsRef.current.latestAnomalyType = newEntry.attack_type || 'Threat Detected';
+
+            const exists = anomalyHistoryRef.current.some(a => a.id === newEntry.id);
+            if (!exists) {
+              const updatedAnomalies = [...anomalyHistoryRef.current, newEntry]
+                .filter(isGenuineAttack)
+                .slice(-MAX_ANOMALY_HISTORY);
+              anomalyHistoryRef.current = updatedAnomalies;
+              setAnomalyHistory(updatedAnomalies);
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAnomalies));
+              } catch (e) {}
+            }
           }
+          
           metricsRef.current.sumScore += (payload.score || 0);
 
         } catch (err) {
@@ -91,6 +180,19 @@ export function useThreatWebSocket() {
       console.error("Failed to connect", err);
       setConnectionStatus('Error');
       reconnectTimeoutRef.current = setTimeout(connect, 5000);
+    }
+  }, []);
+
+  const clearAnomalyHistory = useCallback(async () => {
+    anomalyHistoryRef.current = [];
+    setAnomalyHistory([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/anomalies`, { method: 'DELETE' });
+    } catch (err) {
+      console.warn("Could not clear backend anomalies", err);
     }
   }, []);
 
@@ -122,35 +224,10 @@ export function useThreatWebSocket() {
     };
   }, [connect]);
 
-  // Simulated data for testing when the server isn't up
-  /*
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (connectionStatus !== 'Connected') return;
-      const isAnomaly = Math.random() > 0.85;
-      const score = isAnomaly ? 500 + Math.random() * 400 : Math.random() * 300;
-      const mockEvent = {
-        data: JSON.stringify({
-          metrics: {
-            timestamp: Date.now() / 1000,
-            src_ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-            dst_ip: `10.0.0.${Math.floor(Math.random() * 255)}`,
-            proto: Math.random() > 0.5 ? 6 : 17,
-            length: Math.floor(Math.random() * 1500)
-          },
-          anomaly: isAnomaly,
-          attack_type: isAnomaly ? 'DDoS' : 'Normal',
-          score: score
-        })
-      };
-      wsRef.current?.onmessage(mockEvent);
-    }, 100); // 10 updates per second! The UI should not lag because of our throttle
-    return () => clearInterval(interval);
-  }, [connectionStatus]);
-  */
-
   return {
     dataHistory,
+    anomalyHistory,
+    clearAnomalyHistory,
     metrics,
     connectionStatus
   };

@@ -353,6 +353,205 @@ body {
 }
 
 /* =========================================
+   INCIDENT & ANOMALY LOGS PROFESSIONAL THEME
+   ========================================= */
+
+.incident-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.incident-title-area h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.incident-title-area p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.threat-count-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.incident-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cyber {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-cyber-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.btn-cyber-primary:hover {
+  background: #2563eb;
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+.btn-cyber-outline {
+  background: #131d2e;
+  color: #cbd5e1;
+  border: 1px solid #27354a;
+}
+
+.btn-cyber-outline:hover {
+  background: #1e293b;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.btn-cyber-danger {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.btn-cyber-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+/* Metric Strip (Slim Horizontal Bar) */
+.incident-metric-strip {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 18px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.incident-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.metric-label {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.metric-value-clean {
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.metric-divider {
+  width: 1px;
+  height: 18px;
+  background-color: #243044;
+}
+
+/* Incident Filter Toolbar */
+.incident-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background-color: #0b111e;
+  border-bottom: 1px solid #1e293b;
+  flex-wrap: wrap;
+}
+
+.clean-search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.clean-search-input {
+  width: 100%;
+  padding: 7px 12px 7px 32px;
+  font-size: 0.82rem;
+  background-color: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  color: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.clean-search-input:focus {
+  border-color: #3b82f6;
+}
+
+.clean-select {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  background-color: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  color: #f8fafc;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.clean-select:focus {
+  border-color: #3b82f6;
+}
+
+.flow-node {
+  font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.flow-arrow {
+  color: #38bdf8;
+  margin: 0 6px;
+  font-weight: bold;
+}
+
+/* =========================================
    RESPONSIVE LAYOUT & MEDIA QUERIES
 ========================================= */
 

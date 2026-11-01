@@ -8,7 +8,7 @@ import NetworkTopology from './pages/NetworkTopology';
 import ModelInsights from './pages/ModelInsights';
 
 function App() {
-  const { dataHistory, metrics, connectionStatus } = useThreatWebSocket();
+  const { dataHistory, anomalyHistory, clearAnomalyHistory, metrics, connectionStatus } = useThreatWebSocket();
 
   return (
     <BrowserRouter>
@@ -43,7 +43,12 @@ function App() {
               />
               <Route 
                 path="/logs" 
-                element={<AnomalyLogs dataHistory={dataHistory} />} 
+                element={
+                  <AnomalyLogs 
+                    anomalyHistory={anomalyHistory}
+                    clearAnomalyHistory={clearAnomalyHistory}
+                  />
+                } 
               />
               <Route 
                 path="/topology" 
